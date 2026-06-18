@@ -5,6 +5,8 @@ pymongo
 certifi
 scikit-learn
 dill
+mlflow
 pyyaml
+dagshub
 
 ##-e .
