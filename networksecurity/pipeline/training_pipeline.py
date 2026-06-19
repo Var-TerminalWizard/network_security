@@ -51,9 +51,12 @@ class TrainingPipeline:
     def start_data_validation(self,data_ingestion_artifact:DataIngestionArtifact):
         try:
             data_validation_config=DataValidationConfig(training_pipeline_config=self.training_pipeline_config)
-            data_validation=DataValidation(data_ingestion_artifact=data_ingestion_artifact,data_validation_config=data_validation_config)
+            data_validation=DataValidation(
+                data_validation_config=data_validation_config,
+                data_ingestion_config=self.data_ingestion_config
+            )
             logging.info("Initiate the data Validation")
-            data_validation_artifact=data_validation.initiate_data_validation()
+            data_validation_artifact=data_validation.initialize_data_validation()
             return data_validation_artifact
         except Exception as e:
             raise NetworkSecurityException(e,sys)
@@ -87,22 +90,28 @@ class TrainingPipeline:
         except Exception as e:
             raise NetworkSecurityException(e, sys)
 
-    ## local artifact is going to s3 bucket    
-    # def sync_artifact_dir_to_s3(self):
-    #     try:
-    #         aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/artifact/{self.training_pipeline_config.timestamp}"
-    #         self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.artifact_dir,aws_bucket_url=aws_bucket_url)
-    #     except Exception as e:
-    #         raise NetworkSecurityException(e,sys)
+    # local artifact is going to s3 bucket
+    def sync_artifact_dir_to_s3(self):
+        try:
+            aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/artifact/{self.training_pipeline_config.timestamp}"
+            if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY"):
+                self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.artifact_dir,aws_bucket_url=aws_bucket_url)
+            else:
+                logging.info("Skipping S3 artifact sync because AWS credentials are not configured.")
+        except Exception as e:
+            raise NetworkSecurityException(e,sys)
         
-    # ## local final model is going to s3 bucket 
+    ## local final model is going to s3 bucket
         
-    # def sync_saved_model_dir_to_s3(self):
-    #     try:
-    #         aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/final_model/{self.training_pipeline_config.timestamp}"
-    #         self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.model_dir,aws_bucket_url=aws_bucket_url)
-    #     except Exception as e:
-    #         raise NetworkSecurityException(e,sys)
+    def sync_saved_model_dir_to_s3(self):
+        try:
+            aws_bucket_url = f"s3://{TRAINING_BUCKET_NAME}/final_model/{self.training_pipeline_config.timestamp}"
+            if os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY"):
+                self.s3_sync.sync_folder_to_s3(folder = self.training_pipeline_config.model_dir,aws_bucket_url=aws_bucket_url)
+            else:
+                logging.info("Skipping S3 model sync because AWS credentials are not configured.")
+        except Exception as e:
+            raise NetworkSecurityException(e,sys)
         
     
     

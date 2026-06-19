@@ -8,7 +8,6 @@ from networksecurity.entity.config_entity import DataIngestionConfig
 from networksecurity.entity.artifact_entity import DataIngestionArtifact
 import os
 import sys
-import numpy as np
 import pandas as pd
 import pymongo
 from typing import List
@@ -17,6 +16,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 MONGO_DB_URL=os.getenv("MONGO_DB_URL")
+LOCAL_DATA_FILE = os.path.join("Network_Data", "phisingData.csv")
 
 
 class DataIngestion:
@@ -33,14 +33,22 @@ class DataIngestion:
         try:
             database_name=self.data_ingestion_config.database_name
             collection_name=self.data_ingestion_config.collection_name
-            self.mongo_client=pymongo.MongoClient(MONGO_DB_URL)
-            collection=self.mongo_client[database_name][collection_name]
+            if MONGO_DB_URL:
+                try:
+                    self.mongo_client=pymongo.MongoClient(MONGO_DB_URL, serverSelectionTimeoutMS=8000)
+                    collection=self.mongo_client[database_name][collection_name]
+                    df=pd.DataFrame(list(collection.find()))
+                    if not df.empty:
+                        if "_id" in df.columns.to_list():
+                            df=df.drop(columns=["_id"],axis=1)
+                        df.replace({"na":float("nan")},inplace=True)
+                        return df
+                    logging.info("MongoDB collection is empty; falling back to local CSV data.")
+                except Exception as mongo_error:
+                    logging.info(f"MongoDB unavailable, falling back to local CSV data: {mongo_error}")
 
-            df=pd.DataFrame(list(collection.find()))
-            if "_id" in df.columns.to_list():
-                df=df.drop(columns=["_id"],axis=1)
-            
-            df.replace({"na":np.nan},inplace=True)
+            df = pd.read_csv(LOCAL_DATA_FILE)
+            df.replace({"na":float("nan")},inplace=True)
             return df
         except Exception as e:
             raise NetworkSecurityException(e, sys)

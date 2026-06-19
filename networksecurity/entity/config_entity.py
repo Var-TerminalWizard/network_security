@@ -16,6 +16,7 @@ class TrainingPipelineConfig:
             self.artifact_name,
             timestamp
         )
+        self.model_dir = os.path.join("final_model")
         self.timestamp = timestamp
 
 

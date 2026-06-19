@@ -1,10 +1,7 @@
-import yaml
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
 import sys,os
-import numpy as np
 import pandas as pd
-import dill
 import pickle
 
 from sklearn.metrics import r2_score
@@ -12,6 +9,7 @@ from sklearn.model_selection import GridSearchCV
 
 def read_yaml_file(file_path:str)->dict:
     try:
+        import yaml
         with open(file_path,"rb") as yaml_file:
             return yaml.safe_load(yaml_file)
     except Exception as e:
@@ -19,6 +17,7 @@ def read_yaml_file(file_path:str)->dict:
 
 def write_yaml_file(file_path:str,contents:object,replace:bool=False)->None:
     try:
+        import yaml
         if replace:
             if os.path.exists(file_path):
                 os.remove(file_path)
@@ -28,8 +27,9 @@ def write_yaml_file(file_path:str,contents:object,replace:bool=False)->None:
     except Exception as e:
         raise NetworkSecurityException(e,sys)
 
-def save_numpy_array_data(file_path:str,array:np.array)->None:
+def save_numpy_array_data(file_path:str,array)->None:
     try:
+        import numpy as np
         dir_path=os.path.dirname(file_path)
         os.makedirs(dir_path,exist_ok=True)
         with open(file_path,"wb") as file_obj:
@@ -39,6 +39,7 @@ def save_numpy_array_data(file_path:str,array:np.array)->None:
 
 def save_object(file_path:str,obj:object)->None:
     try:
+        import dill
         logging.info(f"Entered the save_object method of main_utils class")
         os.makedirs(os.path.dirname(file_path),exist_ok=True)
         with open(file_path,"wb") as file_obj:
@@ -48,6 +49,7 @@ def save_object(file_path:str,obj:object)->None:
 
 def load_object(file_path: str, ) -> object:
     try:
+        import dill
         if not os.path.exists(file_path):
             raise Exception(f"The file: {file_path} is not exists")
         with open(file_path, "rb") as file_obj:
@@ -55,8 +57,9 @@ def load_object(file_path: str, ) -> object:
     except Exception as e:
         raise NetworkSecurityException(e, sys)
 
-def load_numpy_array_data(file_path: str) -> np.array:
+def load_numpy_array_data(file_path: str):
     try:
+        import numpy as np
         with open(file_path, "rb") as file_obj:
             return np.load(file_obj)
     except Exception as e:

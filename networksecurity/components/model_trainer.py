@@ -24,9 +24,6 @@ from sklearn.ensemble import (
     RandomForestClassifier,
 )
 
-import mlflow
-from urllib.parse import urlparse
-
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
         try:
@@ -36,6 +33,8 @@ class ModelTrainer:
             raise NetworkSecurityException(e,sys)
     
     def track_mlflow(self,best_model,classificationmetric):
+        import mlflow
+        from urllib.parse import urlparse
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():
             f1_score=classificationmetric.f1_score
