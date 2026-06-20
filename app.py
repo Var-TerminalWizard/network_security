@@ -56,23 +56,31 @@ async def train_route():
 async def predict_route(request: Request,file: UploadFile = File(...)):
     try:
         df=pd.read_csv(file.file)
-        #print(df)
-        preprocesor=load_object("final_model/preprocessor.pkl")
-        final_model=load_object("final_model/model.pkl")
+        if "Result" in df.columns:
+            df = df.drop(columns=["Result"])
+
+        preprocessor_path = "final_model/preprocessor.pkl"
+        model_path = "final_model/model.pkl"
+        if not os.path.exists(preprocessor_path):
+            raise FileNotFoundError(f"Missing preprocessor file: {preprocessor_path}")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Missing model file: {model_path}")
+
+        preprocesor=load_object(preprocessor_path)
+        final_model=load_object(model_path)
+        expected_features = getattr(preprocesor, "feature_names_in_", None)
+        if expected_features is not None:
+            df = df.reindex(columns=list(expected_features))
+
         network_model = NetworkModel(preprocessor=preprocesor,model=final_model)
-        print(df.iloc[0])
         y_pred = network_model.predict(df)
-        print(y_pred)
         df['predicted_column'] = y_pred
-        print(df['predicted_column'])
-        #df['predicted_column'].replace(-1, 0)
-        #return df.to_json()
-        df.to_csv('prediction_output/output.csv')
+        df.to_csv('prediction_output/output.csv', index=False)
         table_html = df.to_html(classes='table table-striped')
-        #print(table_html)
         return templates.TemplateResponse(request=request, name="table.html", context={"table": table_html})
         
     except Exception as e:
+            logging.exception("Prediction failed")
             raise NetworkSecurityException(e,sys)
 
     
