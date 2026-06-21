@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 from networksecurity.exception.exception import NetworkSecurityException 
 from networksecurity.logging.logger import logging
@@ -23,6 +24,8 @@ from sklearn.ensemble import (
     GradientBoostingClassifier,
     RandomForestClassifier,
 )
+
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
@@ -116,7 +119,7 @@ class ModelTrainer:
         Network_Model=NetworkModel(preprocessor=preprocessor,model=best_model)
         save_object(self.model_trainer_config.trained_model_file_path,obj=Network_Model)
         #model pusher
-        save_object("final_model/model.pkl",best_model)
+        save_object(str(PROJECT_DIR / "final_model" / "model.pkl"),best_model)
         
 
         ## Model Trainer Artifact

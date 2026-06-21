@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from sklearn.impute import KNNImputer
 from sklearn.pipeline import Pipeline
+from pathlib import Path
 
 from networksecurity.constants.training_pipeline import TARGET_COLUMN
 from networksecurity.constants.training_pipeline import DATA_TRANSFORMATION_IMPUTER_PARAMS
@@ -16,6 +17,8 @@ from networksecurity.entity.config_entity import DataTransformationConfig
 from networksecurity.exception.exception import NetworkSecurityException 
 from networksecurity.logging.logger import logging
 from networksecurity.utils.main_utils.utils import save_numpy_array_data,save_object
+
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 
 class DataTransformation:
     def __init__(self,data_validation_artifact:DataValidationArtifact,
@@ -91,7 +94,7 @@ class DataTransformation:
             save_numpy_array_data( self.data_transformation_config.transformed_test_file_path,array=test_arr,)
             save_object( self.data_transformation_config.transformed_object_file_path, preprocessor_object,)
 
-            save_object( "final_model/preprocessor.pkl", preprocessor_object)
+            save_object(str(PROJECT_DIR / "final_model" / "preprocessor.pkl"), preprocessor_object)
 
 
             #preparing artifacts

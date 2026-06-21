@@ -2,6 +2,9 @@ from datetime import datetime
 import os
 from networksecurity.constants import training_pipeline
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))
+
 
 class TrainingPipelineConfig:
     def __init__(self, timestamp: datetime = None):
@@ -16,7 +19,7 @@ class TrainingPipelineConfig:
             self.artifact_name,
             timestamp
         )
-        self.model_dir = os.path.join("final_model")
+        self.model_dir = os.path.join(PROJECT_DIR, "final_model")
         self.timestamp = timestamp
 
 

@@ -38,6 +38,8 @@ app.add_middleware(
 
 from fastapi.templating import Jinja2Templates
 templates = Jinja2Templates(directory="./templates")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FINAL_MODEL_DIR = os.path.join(BASE_DIR, "final_model")
 
 @app.get("/", tags=["authentication"])
 async def index():
@@ -59,8 +61,8 @@ async def predict_route(request: Request,file: UploadFile = File(...)):
         if "Result" in df.columns:
             df = df.drop(columns=["Result"])
 
-        preprocessor_path = "final_model/preprocessor.pkl"
-        model_path = "final_model/model.pkl"
+        preprocessor_path = os.path.join(FINAL_MODEL_DIR, "preprocessor.pkl")
+        model_path = os.path.join(FINAL_MODEL_DIR, "model.pkl")
         if not os.path.exists(preprocessor_path):
             raise FileNotFoundError(f"Missing preprocessor file: {preprocessor_path}")
         if not os.path.exists(model_path):
@@ -75,7 +77,9 @@ async def predict_route(request: Request,file: UploadFile = File(...)):
         network_model = NetworkModel(preprocessor=preprocesor,model=final_model)
         y_pred = network_model.predict(df)
         df['predicted_column'] = y_pred
-        df.to_csv('prediction_output/output.csv', index=False)
+        output_dir = os.path.join(BASE_DIR, "prediction_output")
+        os.makedirs(output_dir, exist_ok=True)
+        df.to_csv(os.path.join(output_dir, "output.csv"), index=False)
         table_html = df.to_html(classes='table table-striped')
         return templates.TemplateResponse(request=request, name="table.html", context={"table": table_html})
         
